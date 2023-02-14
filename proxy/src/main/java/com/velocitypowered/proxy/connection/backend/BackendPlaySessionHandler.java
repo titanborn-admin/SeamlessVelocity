@@ -18,6 +18,7 @@
 package com.velocitypowered.proxy.connection.backend;
 
 import static com.velocitypowered.proxy.connection.backend.BungeeCordMessageResponder.getBungeeCordChannel;
+import static com.velocitypowered.proxy.connection.client.ClientPlaySessionHandler.FAKE_PLAYER_ID;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -49,8 +50,10 @@ import com.velocitypowered.proxy.protocol.packet.RemovePlayerInfo;
 import com.velocitypowered.proxy.protocol.packet.ResourcePackRequest;
 import com.velocitypowered.proxy.protocol.packet.ResourcePackResponse;
 import com.velocitypowered.proxy.protocol.packet.ServerData;
+import com.velocitypowered.proxy.protocol.packet.SpawnEntity;
 import com.velocitypowered.proxy.protocol.packet.TabCompleteResponse;
 import com.velocitypowered.proxy.protocol.packet.UpsertPlayerInfo;
+import com.velocitypowered.proxy.protocol.packet.entity.EntityPacket;
 import com.velocitypowered.proxy.protocol.util.PluginMessageUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
@@ -130,6 +133,12 @@ public class BackendPlaySessionHandler implements MinecraftSessionHandler {
     serverConn.disconnect();
     serverConn.getPlayer().handleConnectionException(serverConn.getServer(), packet, true);
     return true;
+  }
+
+  @Override
+  public boolean handle(SpawnEntity packet) {
+    if (server.getConfiguration().useSeamlessTransfer()) playerSessionHandler.getServerEntities().add(packet.getEntityId());
+    return false; // forward
   }
 
   @Override
@@ -305,6 +314,11 @@ public class BackendPlaySessionHandler implements MinecraftSessionHandler {
 
   @Override
   public void handleGeneric(MinecraftPacket packet) {
+    if (server.getConfiguration().useSeamlessTransfer() && packet instanceof EntityPacket) {
+      EntityPacket entityPacket = (EntityPacket) packet;
+      if (entityPacket.getEntityId() == playerSessionHandler.getRealPlayerId()) entityPacket.setEntityId(FAKE_PLAYER_ID);
+    }
+
     if (packet instanceof PluginMessage) {
       ((PluginMessage) packet).retain();
     }

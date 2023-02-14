@@ -148,4 +148,12 @@ public interface ProxyConfig {
    * @return read timeout (in milliseconds)
    */
   int getReadTimeout();
+
+  /**
+   * Should the proxy use the seamless transfer feature? This feature is experimental and may not
+   * work on all servers.
+   *
+   * @return whether to use seamless transfer
+   */
+  boolean useSeamlessTransfer();
 }
