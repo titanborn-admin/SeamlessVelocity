@@ -18,26 +18,7 @@
 package com.velocitypowered.proxy.protocol;
 
 import static com.google.common.collect.Iterables.getLast;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_12;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_12_1;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_13;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_14;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_15;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_16;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_16_2;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_16_4;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_17;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_18;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_18_2;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_19;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_19_1;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_19_3;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_7_2;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_8;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_9;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_9_4;
-import static com.velocitypowered.api.network.ProtocolVersion.MINIMUM_VERSION;
-import static com.velocitypowered.api.network.ProtocolVersion.SUPPORTED_VERSIONS;
+import static com.velocitypowered.api.network.ProtocolVersion.*;
 import static com.velocitypowered.proxy.protocol.ProtocolUtils.Direction;
 import static com.velocitypowered.proxy.protocol.ProtocolUtils.Direction.CLIENTBOUND;
 import static com.velocitypowered.proxy.protocol.ProtocolUtils.Direction.SERVERBOUND;
@@ -45,6 +26,7 @@ import static com.velocitypowered.proxy.protocol.ProtocolUtils.Direction.SERVERB
 import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.proxy.protocol.packet.AvailableCommands;
 import com.velocitypowered.proxy.protocol.packet.BossBar;
+import com.velocitypowered.proxy.protocol.packet.ChunkDataAndUpdateLight;
 import com.velocitypowered.proxy.protocol.packet.ClientSettings;
 import com.velocitypowered.proxy.protocol.packet.Disconnect;
 import com.velocitypowered.proxy.protocol.packet.EncryptionRequest;
@@ -70,6 +52,7 @@ import com.velocitypowered.proxy.protocol.packet.StatusRequest;
 import com.velocitypowered.proxy.protocol.packet.StatusResponse;
 import com.velocitypowered.proxy.protocol.packet.TabCompleteRequest;
 import com.velocitypowered.proxy.protocol.packet.TabCompleteResponse;
+import com.velocitypowered.proxy.protocol.packet.UnloadChunk;
 import com.velocitypowered.proxy.protocol.packet.UpsertPlayerInfo;
 import com.velocitypowered.proxy.protocol.packet.chat.PlayerChatCompletion;
 import com.velocitypowered.proxy.protocol.packet.chat.SystemChat;
@@ -195,6 +178,12 @@ public enum StateRegistry {
           map(0x23, MINECRAFT_1_19, false),
           map(0x24, MINECRAFT_1_19_1, false));
 
+      clientbound.register(UnloadChunk.class, UnloadChunk::new,
+          map(0x1C, MINECRAFT_1_19_1, false),
+          map(0x1B, MINECRAFT_1_19_3, false)); // find out when this was added
+      clientbound.register(ChunkDataAndUpdateLight.class, ChunkDataAndUpdateLight::new,
+          map(0x21, MINECRAFT_1_19_1, false),
+          map(0x20, MINECRAFT_1_19_3, false)); // find out when this was added
       clientbound.register(BossBar.class, BossBar::new,
           map(0x0C, MINECRAFT_1_9, false),
           map(0x0D, MINECRAFT_1_15, false),

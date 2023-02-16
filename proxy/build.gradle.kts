@@ -151,5 +151,7 @@ dependencies {
 
     compileOnly("com.github.spotbugs:spotbugs-annotations:4.7.3")
 
+    implementation("io.github.jglrxavpok.hephaistos:common:2.2.0") // TODO: why???????!?!?!??!!?!?
+
     testImplementation("org.mockito:mockito-core:3.+")
 }

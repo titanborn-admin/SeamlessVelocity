@@ -248,6 +248,27 @@ public enum ProtocolUtils {
     buf.writeBytes(array);
   }
 
+  public static long[] readLongArray(ByteBuf buf) {
+    return readLongArray(buf, DEFAULT_MAX_STRING_SIZE);
+  }
+
+  public static long[] readLongArray(ByteBuf buf, int cap) {
+    int length = readVarInt(buf);
+    checkFrame(length >= 0, "Got a negative-length array (%s)", length);
+    checkFrame(length <= cap, "Bad array size (got %s, maximum is %s)", length, cap);
+    checkFrame(buf.isReadable(length),
+            "Trying to read an array that is too long (wanted %s, only have %s)", length,
+            buf.readableBytes());
+    long[] array = new long[length];
+    for (int i = 0; i < length; i++) array[i] = buf.readLong();
+    return array;
+  }
+
+    public static void writeLongArray(ByteBuf buf, long[] array) {
+        writeVarInt(buf, array.length);
+        for (long l : array) buf.writeLong(l);
+    }
+
   /**
    * Reads an VarInt-prefixed array of VarInt integers from the {@code buf}.
    *
