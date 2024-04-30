@@ -5,38 +5,33 @@ import com.velocitypowered.proxy.connection.MinecraftSessionHandler;
 import com.velocitypowered.proxy.protocol.MinecraftPacket;
 import com.velocitypowered.proxy.protocol.ProtocolUtils;
 import io.netty.buffer.ByteBuf;
+import java.util.ArrayList;
+import java.util.List;
 
-public class UnloadChunk implements MinecraftPacket {
+public class RemoveEntities implements MinecraftPacket {
 
-    private int x;
-    private int z;
+    private List<Integer> entities;
 
-    public void setX(int x) {
-        this.x = x;
+    public List<Integer> getEntities() {
+        return entities;
     }
 
-    public int getX() {
-        return x;
-    }
-
-    public void setZ(int z) {
-        this.z = z;
-    }
-
-    public int getZ() {
-        return z;
+    public void setEntities(List<Integer> entities) {
+        this.entities = entities;
     }
 
     @Override
     public void decode(ByteBuf buf, ProtocolUtils.Direction direction, ProtocolVersion protocolVersion) {
-        this.x = buf.readInt();
-        this.z = buf.readInt();
+        int size = ProtocolUtils.readVarInt(buf);
+        List<Integer> entities = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) entities.add(ProtocolUtils.readVarInt(buf));
+        this.entities = entities;
     }
 
     @Override
     public void encode(ByteBuf buf, ProtocolUtils.Direction direction, ProtocolVersion protocolVersion) {
-        buf.writeInt(x);
-        buf.writeInt(z);
+        ProtocolUtils.writeVarInt(buf, entities.size());
+        for (int entity : entities) ProtocolUtils.writeVarInt(buf, entity);
     }
 
     @Override

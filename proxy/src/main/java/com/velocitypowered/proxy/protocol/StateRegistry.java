@@ -26,11 +26,13 @@ import static com.velocitypowered.proxy.protocol.ProtocolUtils.Direction.SERVERB
 import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.proxy.protocol.packet.AvailableCommands;
 import com.velocitypowered.proxy.protocol.packet.BossBar;
-import com.velocitypowered.proxy.protocol.packet.ChunkDataAndUpdateLight;
 import com.velocitypowered.proxy.protocol.packet.ClientSettings;
 import com.velocitypowered.proxy.protocol.packet.Disconnect;
 import com.velocitypowered.proxy.protocol.packet.EncryptionRequest;
 import com.velocitypowered.proxy.protocol.packet.EncryptionResponse;
+import com.velocitypowered.proxy.protocol.packet.EntityAnimation;
+import com.velocitypowered.proxy.protocol.packet.EntityEvent;
+import com.velocitypowered.proxy.protocol.packet.EntitySoundEffect;
 import com.velocitypowered.proxy.protocol.packet.Handshake;
 import com.velocitypowered.proxy.protocol.packet.HeaderAndFooter;
 import com.velocitypowered.proxy.protocol.packet.JoinGame;
@@ -39,6 +41,7 @@ import com.velocitypowered.proxy.protocol.packet.LegacyPlayerListItem;
 import com.velocitypowered.proxy.protocol.packet.LoginPluginMessage;
 import com.velocitypowered.proxy.protocol.packet.LoginPluginResponse;
 import com.velocitypowered.proxy.protocol.packet.PluginMessage;
+import com.velocitypowered.proxy.protocol.packet.RemoveEntities;
 import com.velocitypowered.proxy.protocol.packet.RemovePlayerInfo;
 import com.velocitypowered.proxy.protocol.packet.ResourcePackRequest;
 import com.velocitypowered.proxy.protocol.packet.ResourcePackResponse;
@@ -47,6 +50,8 @@ import com.velocitypowered.proxy.protocol.packet.ServerData;
 import com.velocitypowered.proxy.protocol.packet.ServerLogin;
 import com.velocitypowered.proxy.protocol.packet.ServerLoginSuccess;
 import com.velocitypowered.proxy.protocol.packet.SetCompression;
+import com.velocitypowered.proxy.protocol.packet.SetEntityVelocity;
+import com.velocitypowered.proxy.protocol.packet.SpawnEntity;
 import com.velocitypowered.proxy.protocol.packet.StatusPing;
 import com.velocitypowered.proxy.protocol.packet.StatusRequest;
 import com.velocitypowered.proxy.protocol.packet.StatusResponse;
@@ -178,12 +183,26 @@ public enum StateRegistry {
           map(0x23, MINECRAFT_1_19, false),
           map(0x24, MINECRAFT_1_19_1, false));
 
+      // TODO: add more versions
+      clientbound.register(SpawnEntity.class, SpawnEntity::new,
+          map(0x00, MINECRAFT_1_19_1, false)); // find out when this was added
+      clientbound.register(RemoveEntities.class, RemoveEntities::new,
+          map(0x3B, MINECRAFT_1_19_1, false),
+          map(0x3A, MINECRAFT_1_19_3, false)); // find out when this was added
       clientbound.register(UnloadChunk.class, UnloadChunk::new,
           map(0x1C, MINECRAFT_1_19_1, false),
           map(0x1B, MINECRAFT_1_19_3, false)); // find out when this was added
-      clientbound.register(ChunkDataAndUpdateLight.class, ChunkDataAndUpdateLight::new,
-          map(0x21, MINECRAFT_1_19_1, false),
-          map(0x20, MINECRAFT_1_19_3, false)); // find out when this was added
+      clientbound.register(EntityAnimation.class, EntityAnimation::new,
+          map(0x03, MINECRAFT_1_19_1, false)); // find out when this was added
+      clientbound.register(SetEntityVelocity.class, SetEntityVelocity::new,
+          map(0x52, MINECRAFT_1_19_1, false),
+          map(0x50, MINECRAFT_1_19_3, false)); // find out when this was added
+      clientbound.register(EntitySoundEffect.class, EntitySoundEffect::new,
+          map(0x5F, MINECRAFT_1_19_1, false),
+          map(0x5D, MINECRAFT_1_19_3, false)); // find out when this was added
+      clientbound.register(EntityEvent.class, EntityEvent::new,
+          map(0x1A, MINECRAFT_1_19_1, false),
+          map(0x19, MINECRAFT_1_19_3, false)); // find out when this was added
       clientbound.register(BossBar.class, BossBar::new,
           map(0x0C, MINECRAFT_1_9, false),
           map(0x0D, MINECRAFT_1_15, false),

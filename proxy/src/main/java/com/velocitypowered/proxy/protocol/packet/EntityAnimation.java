@@ -4,39 +4,40 @@ import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.proxy.connection.MinecraftSessionHandler;
 import com.velocitypowered.proxy.protocol.MinecraftPacket;
 import com.velocitypowered.proxy.protocol.ProtocolUtils;
+import com.velocitypowered.proxy.protocol.packet.entity.EntityPacket;
 import io.netty.buffer.ByteBuf;
 
-public class UnloadChunk implements MinecraftPacket {
+public class EntityAnimation implements MinecraftPacket, EntityPacket {
 
-    private int x;
-    private int z;
+    private int entityId;
+    private byte animation;
 
-    public void setX(int x) {
-        this.x = x;
+    public int getEntityId() {
+        return entityId;
     }
 
-    public int getX() {
-        return x;
+    public void setEntityId(int entityId) {
+        this.entityId = entityId;
     }
 
-    public void setZ(int z) {
-        this.z = z;
+    public byte getAnimation() {
+        return animation;
     }
 
-    public int getZ() {
-        return z;
+    public void setAnimation(byte animation) {
+        this.animation = animation;
     }
 
     @Override
     public void decode(ByteBuf buf, ProtocolUtils.Direction direction, ProtocolVersion protocolVersion) {
-        this.x = buf.readInt();
-        this.z = buf.readInt();
+        this.entityId = ProtocolUtils.readVarInt(buf);
+        this.animation = buf.readByte(); // TODO: is this an unsigned byte?
     }
 
     @Override
     public void encode(ByteBuf buf, ProtocolUtils.Direction direction, ProtocolVersion protocolVersion) {
-        buf.writeInt(x);
-        buf.writeInt(z);
+        ProtocolUtils.writeVarInt(buf, entityId);
+        buf.writeByte(animation);
     }
 
     @Override

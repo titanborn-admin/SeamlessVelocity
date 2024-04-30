@@ -4,39 +4,42 @@ import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.proxy.connection.MinecraftSessionHandler;
 import com.velocitypowered.proxy.protocol.MinecraftPacket;
 import com.velocitypowered.proxy.protocol.ProtocolUtils;
+import com.velocitypowered.proxy.protocol.packet.entity.EntityPacket;
 import io.netty.buffer.ByteBuf;
 
-public class UnloadChunk implements MinecraftPacket {
+public class EntityEvent implements MinecraftPacket, EntityPacket {
 
-    private int x;
-    private int z;
+    private int entityId;
+    private byte event;
 
-    public void setX(int x) {
-        this.x = x;
+    @Override
+    public int getEntityId() {
+        return this.entityId;
     }
 
-    public int getX() {
-        return x;
+    @Override
+    public void setEntityId(int entityId) {
+        this.entityId = entityId;
     }
 
-    public void setZ(int z) {
-        this.z = z;
+    public byte getEvent() {
+        return event;
     }
 
-    public int getZ() {
-        return z;
+    public void setEvent(byte event) {
+        this.event = event;
     }
 
     @Override
     public void decode(ByteBuf buf, ProtocolUtils.Direction direction, ProtocolVersion protocolVersion) {
-        this.x = buf.readInt();
-        this.z = buf.readInt();
+        this.entityId = buf.readInt();
+        this.event = buf.readByte();
     }
 
     @Override
     public void encode(ByteBuf buf, ProtocolUtils.Direction direction, ProtocolVersion protocolVersion) {
-        buf.writeInt(x);
-        buf.writeInt(z);
+        buf.writeInt(entityId);
+        buf.writeByte(event);
     }
 
     @Override
