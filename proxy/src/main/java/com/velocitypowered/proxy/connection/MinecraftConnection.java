@@ -17,14 +17,7 @@
 
 package com.velocitypowered.proxy.connection;
 
-import static com.velocitypowered.proxy.network.Connections.CIPHER_DECODER;
-import static com.velocitypowered.proxy.network.Connections.CIPHER_ENCODER;
-import static com.velocitypowered.proxy.network.Connections.COMPRESSION_DECODER;
-import static com.velocitypowered.proxy.network.Connections.COMPRESSION_ENCODER;
-import static com.velocitypowered.proxy.network.Connections.FRAME_DECODER;
-import static com.velocitypowered.proxy.network.Connections.FRAME_ENCODER;
-import static com.velocitypowered.proxy.network.Connections.MINECRAFT_DECODER;
-import static com.velocitypowered.proxy.network.Connections.MINECRAFT_ENCODER;
+import static com.velocitypowered.proxy.network.Connections.*;
 
 import com.google.common.base.Preconditions;
 import com.velocitypowered.api.network.ProtocolVersion;
@@ -36,6 +29,7 @@ import com.velocitypowered.proxy.VelocityServer;
 import com.velocitypowered.proxy.connection.client.HandshakeSessionHandler;
 import com.velocitypowered.proxy.connection.client.InitialLoginSessionHandler;
 import com.velocitypowered.proxy.connection.client.StatusSessionHandler;
+import com.velocitypowered.proxy.event.connection.ConnectionPacketEvent;
 import com.velocitypowered.proxy.protocol.MinecraftPacket;
 import com.velocitypowered.proxy.protocol.StateRegistry;
 import com.velocitypowered.proxy.protocol.VelocityConnectionEvent;
@@ -139,7 +133,9 @@ public class MinecraftConnection extends ChannelInboundHandlerAdapter {
       }
 
       if (msg instanceof MinecraftPacket) {
-        MinecraftPacket pkt = (MinecraftPacket) msg;
+        ConnectionPacketEvent connectionPacketEvent = new ConnectionPacketEvent(sessionHandler, (MinecraftPacket) msg);
+        server.getEventManager().fire(connectionPacketEvent).join(); // TODO: LES GO WE'RE JOINING AGAIN1!!!
+        MinecraftPacket pkt = connectionPacketEvent.getPacket();
         if (!pkt.handle(sessionHandler)) {
           sessionHandler.handleGeneric((MinecraftPacket) msg);
         }
