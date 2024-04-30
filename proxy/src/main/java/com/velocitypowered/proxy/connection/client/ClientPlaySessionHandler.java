@@ -17,9 +17,7 @@
 
 package com.velocitypowered.proxy.connection.client;
 
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_13;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_16;
-import static com.velocitypowered.api.network.ProtocolVersion.MINECRAFT_1_8;
+import static com.velocitypowered.api.network.ProtocolVersion.*;
 import static com.velocitypowered.proxy.protocol.util.PluginMessageUtil.constructChannelsPacket;
 
 import com.google.common.collect.ImmutableList;
@@ -48,11 +46,13 @@ import com.velocitypowered.proxy.protocol.packet.ClientSettings;
 import com.velocitypowered.proxy.protocol.packet.JoinGame;
 import com.velocitypowered.proxy.protocol.packet.KeepAlive;
 import com.velocitypowered.proxy.protocol.packet.PluginMessage;
+import com.velocitypowered.proxy.protocol.packet.RemoveEntities;
 import com.velocitypowered.proxy.protocol.packet.ResourcePackResponse;
 import com.velocitypowered.proxy.protocol.packet.Respawn;
 import com.velocitypowered.proxy.protocol.packet.TabCompleteRequest;
 import com.velocitypowered.proxy.protocol.packet.TabCompleteResponse;
 import com.velocitypowered.proxy.protocol.packet.TabCompleteResponse.Offer;
+import com.velocitypowered.proxy.protocol.packet.UnloadChunk;
 import com.velocitypowered.proxy.protocol.packet.chat.ChatHandler;
 import com.velocitypowered.proxy.protocol.packet.chat.ChatTimeKeeper;
 import com.velocitypowered.proxy.protocol.packet.chat.CommandHandler;
@@ -94,10 +94,13 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 public class ClientPlaySessionHandler implements MinecraftSessionHandler {
 
   private static final Logger logger = LogManager.getLogger(ClientPlaySessionHandler.class);
+  public static final int FAKE_PLAYER_ID = Integer.MAX_VALUE;
 
   private final ConnectedPlayer player;
   private boolean spawned = false;
+  private int realPlayerId;
   private final List<UUID> serverBossBars = new ArrayList<>();
+  private final List<Integer> serverEntities = new ArrayList<>();
   private final Queue<PluginMessage> loginPluginMessages = new ConcurrentLinkedQueue<>();
   private final VelocityServer server;
   private @Nullable TabCompleteRequest outstandingTabComplete;
@@ -453,6 +456,12 @@ public class ClientPlaySessionHandler implements MinecraftSessionHandler {
   public void handleBackendJoinGame(JoinGame joinGame, VelocityServerConnection destination) {
     final MinecraftConnection serverMc = destination.ensureConnected();
 
+    boolean seamless = server.getConfiguration().useSeamlessTransfer();
+    if (seamless) {
+      this.realPlayerId = joinGame.getEntityId();
+      joinGame.setEntityId(FAKE_PLAYER_ID);
+    }
+
     if (!spawned) {
       // The player wasn't spawned in yet, so we don't need to do anything special. Just send
       // JoinGame.
@@ -464,12 +473,41 @@ public class ClientPlaySessionHandler implements MinecraftSessionHandler {
       // Clear tab list to avoid duplicate entries
       player.getTabList().clearAll();
 
-      // The player is switching from a server already, so we need to tell the client to change
-      // entity IDs and send new dimension information.
-      if (player.getConnection().getType() == ConnectionTypes.LEGACY_FORGE) {
-        this.doSafeClientServerSwitch(joinGame);
+      if (seamless) {
+        // Remove all entities from the old server.
+        if (!serverEntities.isEmpty()) {
+          RemoveEntities removeEntities = new RemoveEntities();
+          removeEntities.setEntities(serverEntities);
+          player.getConnection().delayedWrite(removeEntities);
+          serverEntities.clear();
+        }
+
+        // Unload the chunks outside the server's view distance so the client doesn't render old chunks.
+        int serverViewDistance = joinGame.getViewDistance();
+        byte clientViewDistance = player.getPlayerSettings().getViewDistance();
+        if (serverViewDistance != clientViewDistance) {
+          int max = Math.max(serverViewDistance, clientViewDistance);
+          int min = Math.min(serverViewDistance, clientViewDistance);
+          for (int x = -max; x <= max; x++) {
+            for (int z = -max; z < max; z++) {
+              // TODO: make this if statement configurable?
+              if (x > min || x < -min || z > min || z < -min) {
+                UnloadChunk unloadChunk = new UnloadChunk();
+                unloadChunk.setX(x);
+                unloadChunk.setZ(z);
+                player.getConnection().delayedWrite(unloadChunk);
+              }
+            }
+          }
+        }
       } else {
-        this.doFastClientServerSwitch(joinGame);
+        // The player is switching from a server already, so we need to tell the client to change
+        // entity IDs and send new dimension information.
+        if (player.getConnection().getType() == ConnectionTypes.LEGACY_FORGE) {
+          this.doSafeClientServerSwitch(joinGame);
+        } else {
+          this.doFastClientServerSwitch(joinGame);
+        }
       }
     }
 
@@ -551,6 +589,14 @@ public class ClientPlaySessionHandler implements MinecraftSessionHandler {
 
   public List<UUID> getServerBossBars() {
     return serverBossBars;
+  }
+
+  public List<Integer> getServerEntities() {
+    return serverEntities;
+  }
+
+  public int getRealPlayerId() {
+    return realPlayerId;
   }
 
   private boolean handleCommandTabComplete(TabCompleteRequest packet) {

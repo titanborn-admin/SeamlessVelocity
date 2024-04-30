@@ -24,6 +24,9 @@ import com.velocitypowered.proxy.protocol.packet.ClientSettings;
 import com.velocitypowered.proxy.protocol.packet.Disconnect;
 import com.velocitypowered.proxy.protocol.packet.EncryptionRequest;
 import com.velocitypowered.proxy.protocol.packet.EncryptionResponse;
+import com.velocitypowered.proxy.protocol.packet.EntityAnimation;
+import com.velocitypowered.proxy.protocol.packet.EntityEvent;
+import com.velocitypowered.proxy.protocol.packet.EntitySoundEffect;
 import com.velocitypowered.proxy.protocol.packet.Handshake;
 import com.velocitypowered.proxy.protocol.packet.HeaderAndFooter;
 import com.velocitypowered.proxy.protocol.packet.JoinGame;
@@ -34,6 +37,7 @@ import com.velocitypowered.proxy.protocol.packet.LegacyPlayerListItem;
 import com.velocitypowered.proxy.protocol.packet.LoginPluginMessage;
 import com.velocitypowered.proxy.protocol.packet.LoginPluginResponse;
 import com.velocitypowered.proxy.protocol.packet.PluginMessage;
+import com.velocitypowered.proxy.protocol.packet.RemoveEntities;
 import com.velocitypowered.proxy.protocol.packet.RemovePlayerInfo;
 import com.velocitypowered.proxy.protocol.packet.ResourcePackRequest;
 import com.velocitypowered.proxy.protocol.packet.ResourcePackResponse;
@@ -42,11 +46,14 @@ import com.velocitypowered.proxy.protocol.packet.ServerData;
 import com.velocitypowered.proxy.protocol.packet.ServerLogin;
 import com.velocitypowered.proxy.protocol.packet.ServerLoginSuccess;
 import com.velocitypowered.proxy.protocol.packet.SetCompression;
+import com.velocitypowered.proxy.protocol.packet.SetEntityVelocity;
+import com.velocitypowered.proxy.protocol.packet.SpawnEntity;
 import com.velocitypowered.proxy.protocol.packet.StatusPing;
 import com.velocitypowered.proxy.protocol.packet.StatusRequest;
 import com.velocitypowered.proxy.protocol.packet.StatusResponse;
 import com.velocitypowered.proxy.protocol.packet.TabCompleteRequest;
 import com.velocitypowered.proxy.protocol.packet.TabCompleteResponse;
+import com.velocitypowered.proxy.protocol.packet.UnloadChunk;
 import com.velocitypowered.proxy.protocol.packet.UpsertPlayerInfo;
 import com.velocitypowered.proxy.protocol.packet.chat.PlayerChatCompletion;
 import com.velocitypowered.proxy.protocol.packet.chat.SystemChat;
@@ -109,6 +116,34 @@ public interface MinecraftSessionHandler {
   }
 
   default boolean handle(AvailableCommands commands) {
+    return false;
+  }
+
+  default boolean handle(SpawnEntity packet) {
+    return false;
+  }
+
+  default boolean handle(RemoveEntities packet) {
+    return false;
+  }
+
+  default boolean handle(UnloadChunk packet) {
+    return false;
+  }
+
+  default boolean handle(EntityAnimation packet) {
+    return false;
+  }
+
+  default boolean handle(SetEntityVelocity packet) {
+    return false;
+  }
+
+  default boolean handle(EntitySoundEffect packet) {
+    return false;
+  }
+
+  default boolean handle(EntityEvent packet) {
     return false;
   }
 

@@ -348,6 +348,11 @@ public class VelocityConfiguration implements ProxyConfig {
     return advanced.getReadTimeout();
   }
 
+  @Override
+  public boolean useSeamlessTransfer() {
+    return advanced.isUseSeamlessTransfer();
+  }
+
   public boolean isProxyProtocol() {
     return advanced.isProxyProtocol();
   }
@@ -758,6 +763,8 @@ public class VelocityConfiguration implements ProxyConfig {
     private boolean logCommandExecutions = false;
     @Expose
     private boolean logPlayerConnections = true;
+    @Expose
+    private boolean useSeamlessTransfer = false;
 
     private Advanced() {
     }
@@ -782,6 +789,7 @@ public class VelocityConfiguration implements ProxyConfig {
         this.announceProxyCommands = config.getOrElse("announce-proxy-commands", true);
         this.logCommandExecutions = config.getOrElse("log-command-executions", false);
         this.logPlayerConnections = config.getOrElse("log-player-connections", true);
+        this.useSeamlessTransfer = config.getOrElse("use-seamless-transfer", false);
       }
     }
 
@@ -837,6 +845,10 @@ public class VelocityConfiguration implements ProxyConfig {
       return logPlayerConnections;
     }
 
+    public boolean isUseSeamlessTransfer() {
+      return useSeamlessTransfer;
+    }
+
     @Override
     public String toString() {
       return "Advanced{"
@@ -853,6 +865,7 @@ public class VelocityConfiguration implements ProxyConfig {
           + ", announceProxyCommands=" + announceProxyCommands
           + ", logCommandExecutions=" + logCommandExecutions
           + ", logPlayerConnections=" + logPlayerConnections
+          + ", useSeamlessTransfer=" + useSeamlessTransfer
           + '}';
     }
   }

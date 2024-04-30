@@ -141,6 +141,10 @@ log-command-executions = false
 # and disconnecting from the proxy.
 log-player-connections = true
 
+# Should the proxy use the seamless transfer feature? This feature is experimental and may not
+# work on all servers. If you experience issues, try disabling this.
+use-seamless-transfer = false
+
 [query]
 # Whether to enable responding to GameSpy 4 query responses or not.
 enabled = false
